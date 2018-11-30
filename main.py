@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from stocker import Stocker
+from stocker import *
 from threading import Thread
 import csv
 import pandas as pd
@@ -23,7 +23,6 @@ def handle_company_input(company):
         ans = input("[Y]es or [N]o?\n")
         if ans.strip().lower() == 'y':
             perform_search(company)
-
         elif ans.strip().lower() == 'n':
             thanos_car = ("Would you like to [c]ontinue or [q]uit?")
             if thanos_car.lower().strip() == 'c':
@@ -47,16 +46,28 @@ def perform_search(company):
         datasets.remove("[]")
         datasets.remove("[[")
         datasets.remove("]]")
+
+    if len(datasets) == 1:
+        print("No results found. Would you like to search again? \n")
+        ans = input("[Y]es or [n]\n")
+        if ans[0].lower().strip() == 'y':
+            print("What would you like to search? ")
+            comp = input("Enter a company name: ")
+            print(comp)
+            perform_search(comp)
+        else:
+            exit()
+
     print (datasets[1:])
     search_stock_name()
 
 def search_stock_name():
-    ans = ("Now that you have seen the stocks, would you like to [e]nter the NASDAQ code, [s]earch again, or [q]uit?\n")
+    ans = input("Now that you have seen the stocks, would you like to [e]nter the NASDAQ code,\n [s]earch again, or [q]uit?\n")
     if ans.lower().strip()[0] == 'q':
         exit()
     elif ans.lower().strip()[0] == 'e':
         ticker = input("Please enter the NASDAQ code: ")
-        search_db(ticker.upper().strip())
+        search_db(ticker)
     elif ans.lower().strip()[0] == 's':
         comp = input("Which company do you want to look up? \n")
         perform_search(comp)
@@ -69,13 +80,13 @@ def print_intro():
 def search_db(t):
     ticker = t.upper().strip()
     if ticker in stock_dict.values():
-        print("Do you want the stock for", stock_dict[ticker], "which has the NASDAQ code:",ticker+"?\n")
+        print("Do you want the stock for", ticker+ "?\n")
         ans = input("[Y]es or [n]o: ")
         if ans[0].lower().strip() == 'y':
             make_stock(ticker)
         else:
+            print("HUGE FUCKIN ERROR LOL")
             exit()
-
 
 def dichotomy(text_to_print, func1, func2):
     if text_to_print != None:
@@ -106,16 +117,20 @@ commands = ("Graph' graphs the stock, 'buy and hold' will simulate you buying n 
 "days.")
 
 def manipulate_stock(company_stock):
-    print("Now, I can offer some commands to you. ")
+    print("\n\n\n\n\n\nNow, I can offer some commands to you. ")
     print("'Graph' graphs the stock, 'buy and hold' will simulate you buying n shares on X date and \n"
     "holding them until Y date, 'model' will create a model that predicts the stock price for 30 days, \n"
     "'changepoint' willl graph the changepoints of the stock and 'predict n' will predict the price in n\n"
     "days. You can also use the 'help' command to access this list of commands. ")
-    stock_loop()
+    stock_loop(company_stock)
 
-def stock_loop():
+def stock_loop(company_stock):
+    ans = ""
     while(True):
-        
+        print("The current stock you loaded up is", company_stock.symbol)
+        ans = input("What would you like to do? ")
+        break
+
 
 
 if __name__ == '__main__':
