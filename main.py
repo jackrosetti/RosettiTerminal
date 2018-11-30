@@ -5,13 +5,14 @@ import csv
 import pandas as pd
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
+import difflib
 
 def main():
     print_intro()
     get_company()
 
 def handle_company_input(company):
-    if company in stock_dict.keys():
+    if company.strip() in stock_dict.keys():
         print("Do you want the stock for", company, "which has the NASDAQ code:", stock_dict[company]+"?")
         ans = input("[Y]es or [n]o: ")
         if ans[0].lower().strip() == 'y':
@@ -85,8 +86,9 @@ def search_db(t):
         if ans[0].lower().strip() == 'y':
             make_stock(ticker)
         else:
-            print("HUGE FUCKIN ERROR LOL")
-            exit()
+            print("Invalid command")
+            search_db(ticker)
+            # exit()
 
 def dichotomy(text_to_print, func1, func2):
     if text_to_print != None:
@@ -111,17 +113,14 @@ def make_stock(company):
     company_stock = Stocker(company)
     manipulate_stock(company_stock)
 
-commands = ("Graph' graphs the stock, 'buy and hold' will simulate you buying n shares on X date and \n"
-"holding them until Y date, 'model' will create a model that predicts the stock price for 30 days, \n"
-"'changepoint' willl graph the changepoints of the stock and 'predict n' will predict the price in n\n"
-"days.")
+
 
 def manipulate_stock(company_stock):
     print("\n\n\n\n\n\nNow, I can offer some commands to you. ")
-    print("'Graph' graphs the stock, 'buy and hold' will simulate you buying n shares on X date and \n"
-    "holding them until Y date, 'model' will create a model that predicts the stock price for 30 days, \n"
-    "'changepoint' willl graph the changepoints of the stock and 'predict n' will predict the price in n\n"
-    "days. You can also use the 'help' command to access this list of commands. ")
+    print("'Graph' graphs the stock, 'buy and hold' will simulate you buying n shares on X date and "
+    "holding them until Y date, 'model' will create a model that predicts the stock price for 30 days, "
+    "'changepoint' willl graph the changepoints of the stock and 'predict n' will predict the price in n "
+    "days. You can also use the 'help' command to access this list of commands and 'quit' to quit the application")
     stock_loop(company_stock)
 
 def stock_loop(company_stock):
@@ -129,9 +128,48 @@ def stock_loop(company_stock):
     while(True):
         print("The current stock you loaded up is", company_stock.symbol)
         ans = input("What would you like to do? ")
-        break
+        if not parse_input(ans):
+            continue
+        else:
+            print("Valid")
 
 
+
+def parse_input(ans):
+    cmds = ['help', 'graph', 'buy and hold', 'model', 'changepoint', "quit"]
+
+    if ans in cmds:
+        ind = cmds.index(ans)
+        switcher = {
+            0: print_help,
+            1: graph_stock,
+            2: buy_and_hold_stock,
+            3: model_stock,
+            4: changepoint_stock,
+            5: exit
+        }
+        func = switcher[ind]
+        func()
+        return True
+    else:
+        print("Invalid command. You might have meant:", difflib.get_close_matches(ans, cmds))
+        return False
+
+def print_help():
+    help = ("Graph' graphs the stock, 'buy and hold' will simulate you buying n shares on X date and "
+    "holding them until Y date, 'model' will create a model that predicts the stock price for 30 days, "
+    "'changepoint' willl graph the changepoints of the stock and 'predict n' will predict the price in n "
+    "days.")
+    print(help)
+
+def graph_stock():
+    print("graph")
+def buy_and_hold_stock():
+    print("buy and hold")
+def model_stock():
+    print("nodel!")
+def changepoint_stock():
+    print("changepoint!")
 
 if __name__ == '__main__':
     Thread(target = main).start()
