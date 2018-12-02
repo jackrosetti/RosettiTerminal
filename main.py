@@ -6,6 +6,8 @@ import pandas as pd
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
 import difflib
+import time
+import datetime
 
 def main():
     print_intro()
@@ -17,6 +19,8 @@ def handle_company_input(company):
         ans = input("[Y]es or [n]o: ")
         if ans[0].lower().strip() == 'y':
             make_stock(stock_dict[company])
+        elif ans[0].lower().strip() == 'n':
+            get_company()
         else:
             exit()
     else:
@@ -36,12 +40,18 @@ def handle_company_input(company):
 def perform_search(company):
     url = 'https://www.nasdaq.com/symbol/?Load=true&Search='+company
 
-    text_soup = BeautifulSoup(urlopen(url).read(),features="lxml") #read in
+    try:
+        text_soup = BeautifulSoup(urlopen(url).read(),features="lxml") #read in
+    except:
+        print("Error retreving data from database. Please exclude spaces ")
+        get_company()
+
     table = text_soup.find("div", attrs={"class":"genTable"})
     datasets = []
     for row in table.find_all("tr"):
         dataset = list(td.get_text() for td in row.find_all("td"))
         datasets.append(dataset)
+
 
     if "[]" in datasets:
         datasets.remove("[]")
@@ -100,7 +110,7 @@ def dichotomy(text_to_print, func1, func2):
         func2()
 
 def get_company():
-    print("To begin, please enter a company to get its stock ticker!")
+    print("Please enter a company to get its stock ticker!")
     ans = input("Company: ")
     handle_company_input(ans)
 
@@ -110,6 +120,7 @@ def load_db():
     return
 
 def make_stock(company):
+    global company_stock
     company_stock = Stocker(company)
     manipulate_stock(company_stock)
 
@@ -131,12 +142,10 @@ def stock_loop(company_stock):
         if not parse_input(ans):
             continue
         else:
-            print("Valid")
-
-
+            print("")
 
 def parse_input(ans):
-    cmds = ['help', 'graph', 'buy and hold', 'model', 'changepoint', "quit"]
+    cmds = ['help', 'graph', 'buy and hold', 'model', 'changepoint', "quit", 'predict n','change stock']
 
     if ans in cmds:
         ind = cmds.index(ans)
@@ -146,7 +155,9 @@ def parse_input(ans):
             2: buy_and_hold_stock,
             3: model_stock,
             4: changepoint_stock,
-            5: exit
+            5: exit,
+            6: predict_stock,
+            7: change_stock
         }
         func = switcher[ind]
         func()
@@ -158,19 +169,35 @@ def parse_input(ans):
 def print_help():
     help = ("Graph' graphs the stock, 'buy and hold' will simulate you buying n shares on X date and "
     "holding them until Y date, 'model' will create a model that predicts the stock price for 30 days, "
-    "'changepoint' willl graph the changepoints of the stock and 'predict n' will predict the price in n "
+    "'changepoint' will graph the changepoints of the stock and 'predict n' will predict the price in n "
     "days.")
     print(help)
 
 def graph_stock():
-    print("graph")
-def buy_and_hold_stock():
-    print("buy and hold")
+    company_stock.plot_stock()
+
 def model_stock():
-    print("nodel!")
+    model, model_data = company_stock.create_prophet_model()
+
+def buy_and_hold_stock():
+    n = int(input("How many shares? "))
+    start=input("What start date(YYYY-MM-DD)? ")
+    end=input("What end date(YYYY-MM-DD)? ")
+    try:
+        company_stock.buy_and_hold(start_date=start, end_date=end, nshares = n)
+    except:
+        print("Error. Please change the start and/or end dates")
+
 def changepoint_stock():
-    print("changepoint!")
+    company_stock.changepoint_date_analysis()
+
+def change_stock():
+    get_company()
+
+def predict_stock():
+    n = int(input("How many days in the future would you like to predict? "))
+    model, future = company_stock.create_prophet_model(days = n)
 
 if __name__ == '__main__':
-    Thread(target = main).start()
-    Thread(target = load_db).start()
+    load_db()
+    main()
