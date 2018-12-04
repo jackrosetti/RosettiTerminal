@@ -997,8 +997,3 @@ class Stocker():
         plt.xticks(results['cps'], results['cps'])
         plt.legend(prop={'size': 10})
         plt.show();
-
-
-if __name__ == '__main__':
-    twitter = Stocker("TWTR")
-    twitter.predict_future()
